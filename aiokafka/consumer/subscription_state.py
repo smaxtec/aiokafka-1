@@ -295,9 +295,12 @@ class SubscriptionState:
     @contextlib.contextmanager
     def fetch_context(self):
         self._fetch_count += 1
+        log.debug(f"<sx-debug> fetch_count1: {self._fetch_count}")
         yield
         self._fetch_count -= 1
+        log.debug(f"<sx-debug> fetch_count2: {self._fetch_count}")
         if self._fetch_count == 0:
+            log.debug(f"<sx-debug> : {self._last_fetch_ended}")
             self._last_fetch_ended = time.monotonic()
 
     @property
