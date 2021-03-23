@@ -763,7 +763,7 @@ class GroupCoordinator(BaseCoordinator):
         version = 0 if self._client.api_version < (0, 11, 0) else 1
         request = HeartbeatRequest[version](
             self.group_id, self.generation, self.member_id)
-        log.info("Heartbeat: %s[%s] %s",
+        log.debug("Heartbeat: %s[%s] %s",
                   self.group_id, self.generation, self.member_id)
 
         # _send_req may fail with error like `RequestTimedOutError`
