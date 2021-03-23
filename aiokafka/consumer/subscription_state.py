@@ -300,8 +300,9 @@ class SubscriptionState:
         self._fetch_count -= 1
         log.debug(f"<sx-debug> fetch_count2: {self._fetch_count}")
         if self._fetch_count == 0:
-            log.debug(f"<sx-debug> : {self._last_fetch_ended}")
+            log.debug(f"<sx-debug> _last_fetch_ended1 : {self._last_fetch_ended}")
             self._last_fetch_ended = time.monotonic()
+            log.debug(f"<sx-debug> _last_fetch_ended2 : {self._last_fetch_ended}")
 
     @property
     def fetcher_idle_time(self):
