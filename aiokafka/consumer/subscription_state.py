@@ -68,13 +68,13 @@ class SubscriptionState:
     def topics(self):
         if self._subscription is not None:
             return self._subscription.topics
-        return set([])
+        return set()
 
     def assigned_partitions(self) -> Set[TopicPartition]:
         if self._subscription is None:
-            return set([])
+            return set()
         if self._subscription.assignment is None:
-            return set([])
+            return set()
         return self._subscription.assignment.tps
 
     @property
@@ -119,7 +119,7 @@ class SubscriptionState:
         tp_state = self._subscription.assignment.state_value(tp)
         if tp_state is None:
             raise IllegalStateError(
-                "No current assignment for partition {}".format(tp))
+                f"No current assignment for partition {tp}")
         return tp_state
 
     def _notify_subscription_waiters(self):
@@ -279,7 +279,7 @@ class SubscriptionState:
         self._assigned_state(tp).pause()
 
     def paused_partitions(self) -> Set[TopicPartition]:
-        res = set([])
+        res = set()
         for tp in self.assigned_partitions():
             if self._assigned_state(tp).paused:
                 res.add(tp)
@@ -346,7 +346,7 @@ class Subscription:
     def _assign(self, topic_partitions: Iterable[TopicPartition]):
         for tp in topic_partitions:
             assert tp.topic in self._topics, \
-                "Received an assignment for unsubscribed topic: %s" % (tp, )
+                f"Received an assignment for unsubscribed topic: {tp}"
 
         if self._assignment is not None:
             self._assignment._unassign()
@@ -449,7 +449,7 @@ class PartitionStatus(Enum):
     UNASSIGNED = 2
 
 
-class TopicPartitionState(object):
+class TopicPartitionState:
     """ Shared Partition metadata state.
 
     After creation the workflow is similar to:
@@ -580,5 +580,4 @@ class TopicPartitionState(object):
             self._resume_fut = None
 
     def __repr__(self):
-        return "TopicPartitionState<Status={} position={}>".format(
-            self._status, self._position)
+        return f"TopicPartitionState<Status={self._status} position={self._position}>"
