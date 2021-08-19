@@ -13,6 +13,7 @@ from kafka.protocol.metadata import (
     MetadataResponse_v0 as MetadataResponse)
 from kafka.protocol.fetch import FetchRequest_v0
 
+from aiokafka import __version__
 from aiokafka.client import AIOKafkaClient, ConnectionGroup, CoordinationType
 from aiokafka.conn import AIOKafkaConnection, CloseReason
 from aiokafka.util import create_task, get_running_loop
@@ -35,7 +36,7 @@ class TestKafkaClientIntegration(KafkaIntegrationTestCase):
         client = AIOKafkaClient(bootstrap_servers=[
             '127.0.0.1:9092', '127.0.0.2:9092', '127.0.0.3:9092'])
         self.assertEqual(
-            '<AIOKafkaClient client_id=aiokafka-0.7.0>',
+            f'<AIOKafkaClient client_id=aiokafka-{__version__}>',
             client.__repr__())
         self.assertEqual(
             sorted([('127.0.0.1', 9092, socket.AF_INET),
@@ -112,12 +113,12 @@ class TestKafkaClientIntegration(KafkaIntegrationTestCase):
         self.assertEqual(sorted(expected_brokers), sorted(list(c_brokers)))
         c_topics = md.topics()
         self.assertEqual(len(c_topics), 4)
-        self.assertEqual(md.partitions_for_topic('topic_1'), set([0]))
-        self.assertEqual(md.partitions_for_topic('topic_2'), set([0, 1]))
-        self.assertEqual(md.partitions_for_topic('topic_3'), set([0, 1, 2]))
-        self.assertEqual(md.partitions_for_topic('topic_4'), set([0, 1]))
+        self.assertEqual(md.partitions_for_topic('topic_1'), {0})
+        self.assertEqual(md.partitions_for_topic('topic_2'), {0, 1})
+        self.assertEqual(md.partitions_for_topic('topic_3'), {0, 1, 2})
+        self.assertEqual(md.partitions_for_topic('topic_4'), {0, 1})
         self.assertEqual(
-            md.available_partitions_for_topic('topic_2'), set([1]))
+            md.available_partitions_for_topic('topic_2'), {1})
 
         mocked_conns[(0, 0)].connected.return_value = False
         is_ready = await client.ready(0)
@@ -207,7 +208,7 @@ class TestKafkaClientIntegration(KafkaIntegrationTestCase):
         await client._metadata_update(client.cluster, [])
 
         # There broker list should not be purged
-        self.assertNotEqual(client.cluster.brokers(), set([]))
+        self.assertNotEqual(client.cluster.brokers(), set())
         self.assertEqual(client.cluster.brokers(), brokers_before)
 
     @run_until_complete
@@ -239,7 +240,7 @@ class TestKafkaClientIntegration(KafkaIntegrationTestCase):
         await client._metadata_update(client.cluster, [])
 
         # There broker list should not be purged
-        self.assertNotEqual(client.cluster.brokers(), set([]))
+        self.assertNotEqual(client.cluster.brokers(), set())
         self.assertEqual(client.cluster.brokers(), brokers_before)
 
     @run_until_complete
