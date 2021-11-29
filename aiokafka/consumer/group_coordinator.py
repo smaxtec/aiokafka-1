@@ -798,7 +798,7 @@ class GroupCoordinator(BaseCoordinator):
             return False
         error_type = Errors.for_code(resp.error_code)
         if error_type is Errors.NoError:
-            log.debug(
+            log.info(
                 "Received successful heartbeat response for group %s",
                 self.group_id)
             return True
