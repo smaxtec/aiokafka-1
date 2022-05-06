@@ -50,9 +50,12 @@ def pytest_configure(config):
 @pytest.fixture(scope='session')
 def docker(request):
     image = request.config.getoption('--docker-image')
-    if not image:
-        return None
-    return libdocker.from_env()
+    if image:
+        client = libdocker.from_env()
+        yield client
+        client.close()
+    else:
+        yield None
 
 
 @pytest.fixture(scope='class')
@@ -155,7 +158,7 @@ class KafkaServer:
 
 if sys.platform != 'win32':
 
-    @pytest.yield_fixture(scope='session')
+    @pytest.fixture(scope='session')
     def kafka_server(request, docker, docker_ip_address,
                      unused_port, session_id, ssl_folder):
         image = request.config.getoption('--docker-image')
@@ -217,11 +220,11 @@ if sys.platform != 'win32':
         try:
             if not wait_kafka(kafka_host, kafka_port):
                 exit_code, output = container.exec_run(
-                    ["supervisorctl", "tail", "kafka"])
+                    ["supervisorctl", "tail", "-10000", "kafka"])
                 print("Kafka failed to start. \n--- STDOUT:")
                 print(output.decode(), file=sys.stdout)
                 exit_code, output = container.exec_run(
-                    ["supervisorctl", "tail", "kafka", "stderr"])
+                    ["supervisorctl", "tail", "-10000", "kafka", "stderr"])
                 print("--- STDERR:")
                 print(output.decode(), file=sys.stderr)
                 pytest.exit("Could not start Kafka Server")
@@ -231,7 +234,7 @@ if sys.platform != 'win32':
                 kafka_sasl_ssl_port, container
             )
         finally:
-            container.remove(force=True)
+            container.stop()
 
 else:
 
@@ -241,7 +244,7 @@ else:
         return
 
 
-@pytest.yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 def loop(request):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -256,7 +259,7 @@ def loop(request):
     asyncio.set_event_loop(None)
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def collect_garbage():
     # This is used to have a better report on ResourceWarnings. Without it
     # all warnings will be filled in the end of last test-case.
