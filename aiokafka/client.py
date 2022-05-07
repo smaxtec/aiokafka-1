@@ -589,7 +589,7 @@ class AIOKafkaClient:
             ((2, 5, 0), DescribeAclsRequest_v2),
             ((2, 4, 0), ProduceRequest[8]),
             ((2, 3, 0), FetchRequest[11]),
-            ((2, 3, 0), SyncGroupRequest[3]),
+            ((2, 3, 0), SyncGroupRequest[2]),
             ((2, 2, 0), OffsetRequest[5]),
             ((2, 1, 0), FetchRequest[10]),
             ((2, 0, 0), FetchRequest[8]),
