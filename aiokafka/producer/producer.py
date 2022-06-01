@@ -368,8 +368,8 @@ class AIOKafkaProducer:
         if message_size > self._max_request_size:
             raise MessageSizeTooLargeError(
                 f"The message is {message_size} in topic {topic.name} bytes when serialized which is larger than"
-                " the maximum request size you have configured with the"
-                " max_request_size configuration" % message_size)
+                f" the maximum request size you have configured with the"
+                f" max_request_size configuration")
 
         return serialized_key, serialized_value
 
