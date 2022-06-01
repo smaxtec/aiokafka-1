@@ -2,11 +2,24 @@ import os
 import platform
 import re
 import sys
-from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
-from distutils.command.build_ext import build_ext
-from distutils.errors import CCompilerError, DistutilsExecError, DistutilsPlatformError
 
 from setuptools import Extension, setup
+from setuptools.command.bdist_rpm import bdist_rpm as _bdist_rpm
+from setuptools.command.build_ext import build_ext
+
+
+try:
+    from setuptools.errors import CCompilerError, ExecError, PlatformError
+except ImportError:
+    # RTD workaround until it ships setuptools>=v59.0.0
+    # See:
+    # - https://github.com/pypa/setuptools/pull/2858
+    # - https://docs.readthedocs.io/en/stable/builds.html#python
+    from distutils.errors import (
+        CCompilerError,
+        DistutilsExecError as ExecError,
+        DistutilsPlatformError as PlatformError,
+    )
 
 
 # Those are needed to build _hton for windows
@@ -88,19 +101,21 @@ class ve_build_ext(build_ext):
     def run(self):
         try:
             build_ext.run(self)
-        except (DistutilsPlatformError, FileNotFoundError):
+        except (PlatformError, FileNotFoundError):
             raise BuildFailed()
 
     def build_extension(self, ext):
         try:
             build_ext.build_extension(self, ext)
-        except (CCompilerError, DistutilsExecError, DistutilsPlatformError, ValueError):
+        except (CCompilerError, ExecError, PlatformError, ValueError):
             raise BuildFailed()
 
 
 install_requires = [
-    "kafka-python>=2.0.0",
+    "async-timeout",
+    "kafka-python>=2.0.2",
     "dataclasses>=0.5; python_version<'3.7'",
+    "packaging",
 ]
 
 PY_VER = sys.version_info
@@ -115,7 +130,11 @@ def read(f):
 
 extras_require = {
     "snappy": ["python-snappy>=0.5"],
+    "lz4": ["lz4"],  # Old format (magic=0) requires xxhash
+    "zstd": ["zstandard"],
+    "gssapi": ["gssapi"],
 }
+extras_require["all"] = sum(extras_require.values(), [])
 
 
 def read_version():
@@ -136,6 +155,8 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
     "Operating System :: OS Independent",
     "Topic :: System :: Networking",
     "Topic :: System :: Distributed Computing",

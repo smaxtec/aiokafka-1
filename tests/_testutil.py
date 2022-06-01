@@ -339,13 +339,17 @@ class KafkaIntegrationTestCase(unittest.TestCase):
         yield
         self.loop.set_exception_handler(orig_handler)
 
+    def random_topic_name(self):
+        return "topic-{}-{}".format(
+            self.id()[self.id().rindex(".") + 1:],
+            random_string(10).decode('utf-8')
+        )
+
     def setUp(self):
         super().setUp()
         self._messages = {}
         if not self.topic:
-            self.topic = "topic-{}-{}".format(
-                self.id()[self.id().rindex(".") + 1:],
-                random_string(10).decode('utf-8'))
+            self.topic = self.random_topic_name()
         self._cleanup = []
 
     def tearDown(self):
@@ -421,11 +425,15 @@ def random_string(length):
     return s.encode('utf-8')
 
 
-def wait_kafka(kafka_host, kafka_port, timeout=60):
-    loop = asyncio.get_event_loop()
-    return loop.run_until_complete(
-        _wait_kafka(kafka_host, kafka_port, timeout)
-    )
+def wait_kafka(kafka_host, kafka_port, timeout=120):
+    loop = asyncio.new_event_loop()
+    try:
+        res = loop.run_until_complete(
+            _wait_kafka(kafka_host, kafka_port, timeout)
+        )
+    finally:
+        loop.close()
+    return res
 
 
 async def _wait_kafka(kafka_host, kafka_port, timeout):
